@@ -1,0 +1,123 @@
+version: "3.8"
+
+services:
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    init: true
+    environment:
+      - TZ=Pacific/Auckland
+      - LOG_LEVEL=debug
+    ports:
+      - 5055:5055
+    volumes:
+      - /config/seerr:/app/config
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5055/api/v1/status"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific/Auckland
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - /config/qbittorrent:/config
+      - /mnt/truenas/media-downloads:/downloads
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+      - 54321:54321
+      - 54321:54321/udp
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific/Auckland
+    volumes:
+      - /config/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - TZ=Pacific/Auckland
+      - LOG_HTML=false
+      - CAPTCHA_SOLVER=none
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific/Auckland
+    volumes:
+      - /config/radarr:/config
+      - /mnt/truenas/movies:/movies
+      - /mnt/truenas/media-downloads:/downloads
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific/Auckland
+    volumes:
+      - /config/sonarr:/config
+      - /mnt/truenas/tvshows:/tvshows
+      - /mnt/truenas/media-downloads:/downloads
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific/Auckland
+    volumes:
+      - /config/bazarr:/config
+      - /mnt/truenas/movies:/movies
+      - /mnt/truenas/tvshows:/tvshows
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+
+  houndarr:
+    image: ghcr.io/av1155/houndarr:latest
+    container_name: houndarr
+    restart: unless-stopped
+    ports:
+      - "8877:8877"
+    volumes:
+      - /config/houndarr:/data
+    environment:
+      - TZ=Pacific/Auckland
+      - PUID=1000
+      - PGID=1000
